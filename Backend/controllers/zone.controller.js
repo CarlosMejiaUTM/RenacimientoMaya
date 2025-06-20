@@ -57,7 +57,6 @@ exports.updateZone = async (req, res) => {
         description: req.body.description
       };
         if (req.file) {
-        // Prepara form-data para imgbb
         const form = new FormData();
         const base64Image = req.file.buffer.toString('base64');
         form.append('image', base64Image);
@@ -68,7 +67,9 @@ exports.updateZone = async (req, res) => {
         if (!response.data.success) {
           return res.status(500).json({ message: 'Error al subir la imagen a imgbb.' });
         }
-        // Actualizar URL de la imagen
+
+
+        // -----Actualizar URL de la imagen
         updateData.imageUrl = response.data.data.url;
       }
       const zone = await Zone.findByIdAndUpdate(req.params.id, updateData, {
