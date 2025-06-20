@@ -16,7 +16,7 @@ const createAdmin = async () => {
         console.log('Conectado a la BD para creación de admin...');
 
         // -- CONFIGURA TU ADMIN AQUÍ --
-        const username = 'admin';
+        const username = 'admin1';
         const password = 'admin';
         // -------------------------
 

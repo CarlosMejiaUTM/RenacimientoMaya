@@ -15,7 +15,8 @@ router.route('/')
 
 router.route('/:id')
     .get(zoneController.getZoneById)
-    .put(protect, isAdmin, zoneController.updateZone)
+    .put(protect, isAdmin, upload.single('image'), zoneController.updateZone)
     .delete(protect, isAdmin, zoneController.deleteZone);
+
 
 module.exports = router;

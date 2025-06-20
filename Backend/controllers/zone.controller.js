@@ -1,6 +1,8 @@
 const Zone = require('../models/zone.model');
 const axios = require('axios');
 const FormData = require('form-data');
+const Review = require('../models/review.model'); 
+
 
 // GET /api/zones (con búsqueda, filtro y paginación)
 exports.getAllZones = async (req, res) => {
@@ -45,28 +47,55 @@ exports.createZone = async (req, res) => {
     } catch (error) { res.status(500).json({ message: 'Error al crear la zona', error: error.message }); }
 };
 
+
 // PUT /api/zones/:id
 exports.updateZone = async (req, res) => {
     try {
-        const zone = await Zone.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true
+      let updateData = {
+        name: req.body.name,
+        municipality: req.body.municipality,
+        description: req.body.description
+      };
+        if (req.file) {
+        // Prepara form-data para imgbb
+        const form = new FormData();
+        const base64Image = req.file.buffer.toString('base64');
+        form.append('image', base64Image);
+  
+        const response = await axios.post(`https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`, form, {
+          headers: form.getHeaders()
         });
-        if (!zone) return res.status(404).json({ message: 'Zona no encontrada' });
-        res.status(200).json({ status: 'success', data: zone });
+        if (!response.data.success) {
+          return res.status(500).json({ message: 'Error al subir la imagen a imgbb.' });
+        }
+        // Actualizar URL de la imagen
+        updateData.imageUrl = response.data.data.url;
+      }
+      const zone = await Zone.findByIdAndUpdate(req.params.id, updateData, {
+        new: true,
+        runValidators: true
+      });
+      if (!zone) return res.status(404).json({ message: 'Zona no encontrada' });
+      res.status(200).json({ status: 'success', data: zone });
     } catch (error) {
-        res.status(500).json({ message: 'Error al actualizar la zona', error: error.message });
+      res.status(500).json({ message: 'Error al actualizar la zona', error: error.message });
     }
-};
+  };
+  
 
 // DELETE /api/zones/:id
 exports.deleteZone = async (req, res) => {
     try {
-        const zone = await Zone.findById(req.params.id);
-        if (!zone) return res.status(404).json({ message: 'Zona no encontrada' });
-        await zone.remove(); // Usamos remove() para activar el middleware pre-remove y borrar reseñas asociadas
-        res.status(204).json({ status: 'success', data: null });
+      const zoneId = req.params.id;
+      const zone = await Zone.findById(zoneId);
+      if (!zone) return res.status(404).json({ message: 'Zona no encontrada' });
+  
+      // Eliminar reseñas asociadas
+      await Review.deleteMany({ zone: zoneId });
+      await Zone.findByIdAndDelete(zoneId); 
+      res.status(204).json({ status: 'success', data: null });
     } catch (error) {
-        res.status(500).json({ message: 'Error al eliminar la zona', error: error.message });
+      console.error('Error al eliminar la zona:', error);
+      res.status(500).json({ message: 'Error al eliminar la zona', error: error.message });
     }
-};
+  };
