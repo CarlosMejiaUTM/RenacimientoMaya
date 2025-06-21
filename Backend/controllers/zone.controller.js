@@ -75,7 +75,7 @@ exports.updateZone = async (req, res) => {
       const zone = await Zone.findByIdAndUpdate(req.params.id, updateData, {
         new: true,
         runValidators: true
-      });
+      });git 
       if (!zone) return res.status(404).json({ message: 'Zona no encontrada' });
       res.status(200).json({ status: 'success', data: zone });
     } catch (error) {
