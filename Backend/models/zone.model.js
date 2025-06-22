@@ -4,10 +4,21 @@ const zoneSchema = new mongoose.Schema({
     name: { type: String, required: true, trim: true },
     municipality: { type: String, required: true, trim: true },
     description: { type: String, required: true },
-    imageUrl: { type: String, required: true },
+    
+    // CAMBIO: De 'imageUrl' a 'imageUrls' para guardar una lista.
+    imageUrls: { 
+        type: [String], 
+        required: true,
+        validate: [val => val.length > 0, 'Se requiere al menos una imagen.']
+    },
+    
     averageRating: { type: Number, default: 0, min: 0, max: 5, set: val => Math.round(val * 10) / 10 },
     numReviews: { type: Number, default: 0 }
-}, { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } });
+}, { 
+    timestamps: true, 
+    toJSON: { virtuals: true }, 
+    toObject: { virtuals: true } 
+});
 
 zoneSchema.virtual('reviews', {
     ref: 'Review',
