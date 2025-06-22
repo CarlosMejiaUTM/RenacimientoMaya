@@ -44,14 +44,22 @@ exports.updateReview = async (req, res) => {
 // DELETE /api/reviews/:id
 exports.deleteReview = async (req, res) => {
     try {
-        const review = await Review.findById(req.params.id);
-        if (!review) return res.status(404).json({ message: 'Reseña no encontrada' });
-        if (review.user.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'No tienes permiso para eliminar esta reseña.' });
-        }
-        await review.remove(); // Usamos .remove() para disparar el hook del modelo
-        res.status(204).json({ status: 'success', data: null });
+      const review = await Review.findById(req.params.id);
+      if (!review) {
+        return res.status(404).json({ message: 'Reseña no encontrada' });
+      }
+  
+      if (review.user.toString() !== req.user.id && req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'No tienes permiso para eliminar esta reseña.' });
+      }
+  
+      await Review.deleteOne({ _id: review._id });
+  
+      await Review.calculateAverageRating(review.zone);
+  
+      res.status(204).json({ status: 'success', data: null });
     } catch (error) {
-         res.status(500).json({ message: 'Error al eliminar la reseña', error: error.message });
+      res.status(500).json({ message: 'Error al eliminar la reseña', error: error.message });
     }
-};
+  };
+  

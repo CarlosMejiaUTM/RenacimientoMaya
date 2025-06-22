@@ -5,7 +5,7 @@ const { protect, isAdmin } = require('../middleware/auth.middleware');
 const upload = require('../middleware/upload.middleware');
 const reviewRouter = require('./review.routes');
 
-// Anidar las reseñas DENTRO de las zonas es una buena práctica REST
+
 // POST /api/zones/ID_DE_ZONA/reviews
 router.use('/:zoneId/reviews', reviewRouter);
 
@@ -15,7 +15,8 @@ router.route('/')
 
 router.route('/:id')
     .get(zoneController.getZoneById)
-    .put(protect, isAdmin, zoneController.updateZone)
+    .put(protect, isAdmin, upload.single('image'), zoneController.updateZone)
     .delete(protect, isAdmin, zoneController.deleteZone);
+
 
 module.exports = router;
