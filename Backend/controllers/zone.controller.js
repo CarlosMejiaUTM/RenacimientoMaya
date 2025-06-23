@@ -123,25 +123,27 @@ exports.updateZone = async (req, res) => {
             });
             const uploadResults = await Promise.all(uploadPromises);
             
-            // --- CORRECCIÓN AQUÍ: Añadimos la validación de éxito ---
             const newImageUrls = uploadResults.map(response => {
-                // Si una de las imágenes falla al subir, lanzamos un error para detener todo.
                 if (!response.data.success) {
                     throw new Error('Error al subir una de las nuevas imágenes a ImgBB.');
                 }
                 return response.data.data.url;
             });
-            // --- FIN DE LA CORRECCIÓN ---
             
             zone.imageUrls.push(...newImageUrls);
         }
 
-        // Si el frontend envía una lista de imágenes a eliminar, las quita del array.
-        if (req.body.deletedImages && Array.isArray(req.body.deletedImages)) {
-            zone.imageUrls = zone.imageUrls.filter(url => !req.body.deletedImages.includes(url));
-        }
+        if (req.body.deletedImages) {
+            try {
+                const imagesToDelete = JSON.parse(req.body.deletedImages);
 
-        // Guarda todos los cambios en la base de datos.
+                if (Array.isArray(imagesToDelete) && imagesToDelete.length > 0) {
+                    zone.imageUrls = zone.imageUrls.filter(url => !imagesToDelete.includes(url));
+                }
+            } catch(e) {
+                console.error("Error al procesar 'deletedImages': ", e);
+            }
+        }
         await zone.save();
         
         res.status(200).json({ status: 'success', data: zone });
